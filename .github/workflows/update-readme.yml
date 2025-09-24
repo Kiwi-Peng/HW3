@@ -1,0 +1,47 @@
+name: Update README
+
+on:
+  workflow_dispatch:   # 手動觸發
+  # schedule:
+  #   - cron: '0 * * * *'  # 每小時自動執行
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.REPO_TOKEN }}
+
+      - name: Update README section
+        run: |
+          python - <<'PY'
+          import re
+          from datetime import datetime, timedelta
+
+          fn = "README.md"
+          start = "<!--START_SECTION:update-->"
+          end = "<!--END_SECTION:update-->"
+
+          with open(fn, "r", encoding="utf-8") as f:
+              s = f.read()
+
+          new_block = f"""{start}
+Updated at: {(datetime.utcnow()+timedelta(hours=8)).strftime('%Y-%m-%d %H:%M:%S')} (Asia/Taipei)
+{end}"""
+
+          s2 = re.sub(re.escape(start)+r".*?"+re.escape(end), new_block, s, flags=re.S)
+
+          with open(fn, "w", encoding="utf-8") as f:
+              f.write(s2)
+          PY
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "Kiwi"
+          git config user.email "pengkaiwei803@gmail.com"
+          git add README.md
+          git commit -m "chore: update README [skip ci]" || echo "No changes"
+          git push
