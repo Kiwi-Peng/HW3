@@ -1,9 +1,9 @@
 name: Update README
 
 on:
-  workflow_dispatch:    # 手動觸發
+  workflow_dispatch:   # 手動觸發（符合講義要求）
   # schedule:
-  #   - cron: '0 * * * *'  # 每小時自動執行
+  #   - cron: '0 * * * *'  # 可選，每小時自動執行
 
 jobs:
   update-readme:
@@ -15,7 +15,7 @@ jobs:
         with:
           token: ${{ secrets.REPO_TOKEN }}
 
-            - name: Update README section
+      - name: Update README section
         run: |
           python - <<'PY'
           import re
@@ -30,6 +30,8 @@ jobs:
 
           new_block = f"""{start}
 Updated at: {(datetime.utcnow()+timedelta(hours=8)).strftime('%Y-%m-%d %H:%M:%S')} (Asia/Taipei)
+
+- Auto update by GitHub Actions
 {end}"""
 
           s2 = re.sub(re.escape(start)+r".*?"+re.escape(end), new_block, s, flags=re.S)
@@ -38,11 +40,10 @@ Updated at: {(datetime.utcnow()+timedelta(hours=8)).strftime('%Y-%m-%d %H:%M:%S'
               f.write(s2)
           PY
 
-
       - name: Commit and push changes
         run: |
           git config user.name "Kiwi"
           git config user.email "pengkaiwei803@gmail.com"
           git add README.md
-          git commit -m "chore: update README [skip ci]" || echo "No changes"
+          git commit -m "chore: update README [skip ci]" || echo "No changes to commit"
           git push
