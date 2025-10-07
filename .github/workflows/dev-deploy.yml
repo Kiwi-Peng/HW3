@@ -1,3 +1,23 @@
+deploy-dev:
+  needs: build
+  runs-on: ubuntu-latest
+  environment: dev
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Download Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: build-artifact
+
+    - name: Create Dev Release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        TAG="dev-$(date +'%Y%m%d-%H%M%S')"
+        gh release create "$TAG" build.zip --notes "Auto release for dev"
+
 name: CI Dev Deployment
 on:
   push:
