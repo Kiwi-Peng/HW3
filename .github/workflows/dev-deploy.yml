@@ -21,20 +21,20 @@ jobs:
           name: build-artifact
           path: build.zip
 
-   deploy-dev:
-    needs: build
-    runs-on: ubuntu-latest
-    environment: dev
-    steps:
-      - name: Download Artifact
-        uses: actions/download-artifact@v4
-        with:
+  deploy-dev:
+     needs: build
+     runs-on: ubuntu-latest
+     environment: dev
+     steps:
+       - name: Download Artifact
+         uses: actions/download-artifact@v4
+         with:
           name: build-artifact
 
-      - name: Create Dev Release
-        env:
+       - name: Create Dev Release
+         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
+         run: |
           TAG="dev-$(date +'%Y%m%d-%H%M%S')"
           NOTE="Automated test release for Dev environment."
           echo "Creating release with tag: $TAG"
