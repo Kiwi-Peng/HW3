@@ -18,7 +18,7 @@ jobs:
           echo "模擬建置流程"
           mkdir -p output
           echo "dummy build" > output/build.txt
-          zip -r build.zip output.
+          zip -r build.zip.
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
