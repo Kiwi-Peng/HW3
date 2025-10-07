@@ -1,0 +1,16 @@
+name: Environment Test
+
+on:
+  workflow_dispatch:   # 手動觸發
+
+jobs:
+  test-env:
+    runs-on: ubuntu-latest
+    environment: dev   # 測試 dev 環境
+    steps:
+      - name: 顯示環境資訊
+        run: |
+          echo "=== 測試 Environment ==="
+          echo "目前執行環境：${{ job.environment }}"
+          echo "BUILD_TAG=${{ secrets.BUILD_TAG }}"
+          echo "RELEASE_NOTE=${{ secrets.RELEASE_NOTE }}"
