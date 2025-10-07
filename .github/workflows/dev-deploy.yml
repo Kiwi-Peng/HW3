@@ -1,0 +1,48 @@
+name: CI Dev Deployment
+
+on:
+  push:
+    branches: [ main ]   # 監聽 main 分支的 push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write    # 允許建立 release 所需的權限
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build project
+        run: |
+          echo "模擬建置流程"
+          npm install
+          npm run build
+          zip -r build.zip .
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifact
+          path: build.zip
+
+  deploy-dev:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: dev
+    permissions:
+      contents: write
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifact
+
+      - name: Release Dev Build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ secrets.BUILD_TAG }}
+          NOTE: ${{ secrets.RELEASE_NOTE }}
+        run: |
+          echo "建立 Dev Release：$TAG"
+          gh release create "$TAG" build.zip --notes "$NOTE"
