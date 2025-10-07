@@ -1,5 +1,4 @@
 name: CI Dev Deployment
-
 on:
   push:
     branches: [ main ]
@@ -8,35 +7,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      # 1️⃣ 下載 repo
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2️⃣ 安裝 Node.js
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      # 3️⃣ 安裝 zip 工具
-      - name: Install zip
-        run: sudo apt-get update && sudo apt-get install -y zip
-
-      # 4️⃣ 安裝 npm 依賴並 build
-      - name: Build Project
+      - name: Create test artifact
         run: |
-          npm install
-          npm run build
+          echo "This is a test build" > build.txt
+          zip -r build.zip build.txt
 
-      # 5️⃣ 確認 build 產出
-      - name: List build folder
-        run: ls -R
-
-      # 6️⃣ 壓縮 build 資料夾
-      - name: Archive Build Artifact
-        run: zip -r build.zip dist/
-
-      # 7️⃣ 上傳 artifact
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -48,17 +26,15 @@ jobs:
     runs-on: ubuntu-latest
     environment: dev
     steps:
-      # 1️⃣ 下載 build artifact
       - name: Download Artifact
         uses: actions/download-artifact@v4
         with:
           name: build-artifact
 
-      # 2️⃣ 建立 release
-      - name: Release Dev Build
+      - name: Create Dev Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ vars.BUILD_TAG }}          # 例如 dev-v1.0
-          NOTE: ${{ vars.RELEASE_NOTE }}      # 例如 "Dev build for assignment 4"
+          TAG: ${{ vars.BUILD_TAG }}
+          NOTE: ${{ vars.RELEASE_NOTE }}
         run: |
           gh release create "$TAG" build.zip --notes "$NOTE"
