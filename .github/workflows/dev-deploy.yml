@@ -21,7 +21,7 @@ jobs:
           name: build-artifact
           path: build.zip
 
-  deploy-dev:
+   deploy-dev:
     needs: build
     runs-on: ubuntu-latest
     environment: dev
@@ -34,7 +34,8 @@ jobs:
       - name: Create Dev Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ vars.BUILD_TAG }}
-          NOTE: ${{ vars.RELEASE_NOTE }}
         run: |
+          TAG="dev-$(date +'%Y%m%d-%H%M%S')"
+          NOTE="Automated test release for Dev environment."
+          echo "Creating release with tag: $TAG"
           gh release create "$TAG" build.zip --notes "$NOTE"
