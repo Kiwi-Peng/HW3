@@ -15,10 +15,10 @@ jobs:
 
       - name: Build project
         run: |
-          echo "模擬建置流程" 
-          npm install
-          npm run build
-          zip -r build.zip .
+          echo "模擬建置流程"
+          mkdir -p output
+          echo "dummy build" > output/build.txt
+          zip -r build.zip output.
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
