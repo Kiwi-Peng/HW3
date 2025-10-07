@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # trigger test
     permissions:
       contents: write    # 允許建立 release 所需的權限
     steps:
@@ -15,7 +15,7 @@ jobs:
 
       - name: Build project
         run: |
-          echo "模擬建置流程"
+          echo "模擬建置流程" 
           npm install
           npm run build
           zip -r build.zip .
@@ -45,4 +45,5 @@ jobs:
           NOTE: ${{ secrets.RELEASE_NOTE }}
         run: |
           echo "建立 Dev Release：$TAG"
-          gh release create "$TAG" build.zip --notes "$NOTE"
+          gh release create "$TAG" build.zip --notes "$NOTE" 
+
