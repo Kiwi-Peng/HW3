@@ -1,24 +1,5 @@
-deploy-dev:
-  needs: build
-  runs-on: ubuntu-latest
-  environment: dev
-  steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Download Artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: build-artifact
-
-    - name: Create Dev Release
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        TAG="dev-$(date +'%Y%m%d-%H%M%S')"
-        gh release create "$TAG" build.zip --notes "Auto release for dev"
-
 name: CI Dev Deployment
+
 on:
   push:
     branches: [ main ]
@@ -27,14 +8,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # 1️⃣ 先把 repo checkout 下來
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2️⃣ 建立測試 artifact
       - name: Create test artifact
         run: |
           echo "This is a test build" > build.txt
           zip -r build.zip build.txt
 
+      # 3️⃣ 上傳 artifact 以便後續部署使用
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -42,19 +26,26 @@ jobs:
           path: build.zip
 
   deploy-dev:
-     needs: build
-     runs-on: ubuntu-latest
-     environment: dev
-     steps:
-       - name: Download Artifact
-         uses: actions/download-artifact@v4
-         with:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      # 1️⃣ 先 checkout repo，建立 .git，避免 gh release 出錯
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2️⃣ 下載 build job 上傳的 artifact
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
           name: build-artifact
 
-       - name: Create Dev Release
-         env:
+      # 3️⃣ 建立 dev release
+      - name: Create Dev Release
+        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-         run: |
+        run: |
+          # 生成唯一 tag
           TAG="dev-$(date +'%Y%m%d-%H%M%S')"
           NOTE="Automated test release for Dev environment."
           echo "Creating release with tag: $TAG"
