@@ -6,7 +6,7 @@ on:
 jobs:
   test-env:
     runs-on: ubuntu-latest
-    environment: dev   # 測試 dev 環境
+    environment: production   # 測試 dev 環境
     steps:
       - name: 顯示環境資訊
         run: |
