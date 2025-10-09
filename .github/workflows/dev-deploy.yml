@@ -38,10 +38,9 @@ jobs:
 
       - name: Run Automated Tests
         run: |
-          echo "Running automated tests..."
-          sleep 2
-          echo "❌ Tests failed!"
-          exit 1
+         echo "Running automated tests..."
+         exit 1   # 強制失敗
+
 
 
   deploy-dev:
