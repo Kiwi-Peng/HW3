@@ -69,7 +69,7 @@ jobs:
           echo "Creating release with tag: $TAG"
           gh release create "$TAG" build.zip --notes "$NOTE"
   deploy-staging:
-    needs: deploy-dev           # 依賴 dev 完成
+    needs: test           #依賴 test job
     runs-on: ubuntu-latest
     environment: staging        # GitHub Environments → 新增 staging
     steps:
