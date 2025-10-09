@@ -1,116 +1,95 @@
-name: CI Dev Deployment
+name: CI/CD Deployment Pipeline
 
 on:
   push:
     branches: [ main ]
 permissions:
-  contents: write  # 允許 GH Actions 建立 release
-
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      # 1️⃣ 先把 repo checkout 下來
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2️⃣ 建立測試 artifact
-      - name: Create test artifact
+      - name: Create build artifact
         run: |
           echo "This is a test build" > build.txt
           zip -r build.zip build.txt
 
-      # 3️⃣ 上傳 artifact 以便後續部署使用
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: build-artifact
           path: build.zip
-  test:
+
+  test-unit:
     needs: build
     runs-on: ubuntu-latest
+    env:
+      TEST_ENV: staging  # 這裡可以根據需要修改
     steps:
       - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
           name: build-artifact
 
-      - name: Run Automated Tests
+      - name: Run Unit Tests
         run: |
-         echo "Running automated tests..."
+          echo "Running unit tests in $TEST_ENV environment..."
           sleep 2
-          echo "✅ Tests passed successfully"
+          echo "✅ Unit tests passed"
 
-
-
-  deploy-dev:
-    needs: build
+  test-integration:
+    needs: test-unit
     runs-on: ubuntu-latest
-    environment: dev
+    env:
+      TEST_ENV: staging  # 與 test-unit 可同樣設定或改為 prod
     steps:
-      # 1️⃣ 先 checkout repo，建立 .git，避免 gh release 出錯
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      # 2️⃣ 下載 build job 上傳的 artifact
-      - name: Download Artifact
+      - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
           name: build-artifact
 
-      # 3️⃣ 建立 dev release
-      - name: Create Dev Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run Integration Tests
         run: |
-          # 生成唯一 tag
-          TAG="dev-$(date +'%Y%m%d-%H%M%S')"
-          NOTE="Automated test release for Dev environment."
-          echo "Creating release with tag: $TAG"
-          gh release create "$TAG" build.zip --notes "$NOTE"
-  deploy-staging:
-    needs: test           # 依賴 test job
-    runs-on: ubuntu-latest
-    environment: staging        # GitHub Environments → 新增 staging
-    steps:
-      # 1️⃣ Checkout
-      - name: Checkout repository
-        uses: actions/checkout@v4
+          echo "Running integration tests in $TEST_ENV environment..."
+          sleep 2
+          echo "✅ Integration tests passed"
 
-      # 2️⃣ 下載 artifact
+  deploy-staging:
+    needs: test-integration
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
       - name: Download Artifact
         uses: actions/download-artifact@v4
         with:
           name: build-artifact
 
-      # 3️⃣ 建立 staging release
-      - name: Create Staging Release
+      - name: Deploy to Staging
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="staging-$(date +'%Y%m%d-%H%M%S')"
-          NOTE="Testing pre-production release."
-          echo "Creating Staging release: $TAG"
+          NOTE="Automated staging release after successful tests"
           gh release create "$TAG" build.zip --notes "$NOTE"
-  deploy-production:
-    needs: deploy-staging       # 要先完成 staging
-    runs-on: ubuntu-latest
-    environment: production     # GitHub Environments → 新增 production
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
 
+  deploy-production:
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
       - name: Download Artifact
         uses: actions/download-artifact@v4
         with:
           name: build-artifact
 
-      - name: Create Production Release
+      - name: Deploy to Production
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="prod-$(date +'%Y%m%d-%H%M%S')"
-          NOTE="Production release - requires manual approval."
-          echo "Creating Production release: $TAG"
+          NOTE="Automated production release after successful tests"
           gh release create "$TAG" build.zip --notes "$NOTE"
