@@ -53,3 +53,48 @@ jobs:
           NOTE="Automated test release for Dev environment."
           echo "Creating release with tag: $TAG"
           gh release create "$TAG" build.zip --notes "$NOTE"
+  deploy-staging:
+    needs: deploy-dev           # 依賴 dev 完成
+    runs-on: ubuntu-latest
+    environment: staging        # GitHub Environments → 新增 staging
+    steps:
+      # 1️⃣ Checkout
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2️⃣ 下載 artifact
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifact
+
+      # 3️⃣ 建立 staging release
+      - name: Create Staging Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="staging-$(date +'%Y%m%d-%H%M%S')"
+          NOTE="Testing pre-production release."
+          echo "Creating Staging release: $TAG"
+          gh release create "$TAG" build.zip --notes "$NOTE"
+  deploy-production:
+    needs: deploy-staging       # 要先完成 staging
+    runs-on: ubuntu-latest
+    environment: production     # GitHub Environments → 新增 production
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifact
+
+      - name: Create Production Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="prod-$(date +'%Y%m%d-%H%M%S')"
+          NOTE="Production release - requires manual approval."
+          echo "Creating Production release: $TAG"
+          gh release create "$TAG" build.zip --notes "$NOTE"
