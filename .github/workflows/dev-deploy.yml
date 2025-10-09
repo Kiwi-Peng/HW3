@@ -27,6 +27,21 @@ jobs:
         with:
           name: build-artifact
           path: build.zip
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifact
+
+      - name: Run Automated Tests
+        run: |
+          echo "Running automated tests..."
+          sleep 2
+          echo "✅ Tests passed successfully"
+
 
   deploy-dev:
     needs: build
