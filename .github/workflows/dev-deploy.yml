@@ -63,18 +63,25 @@ jobs:
     runs-on: ubuntu-latest
     environment: staging
     steps:
-      - name: Download Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifact
+    # 1️⃣ Checkout repository (必要)
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-      - name: Deploy to Staging
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          TAG="staging-$(date +'%Y%m%d-%H%M%S')"
-          NOTE="Automated staging release after successful tests"
-          gh release create "$TAG" build.zip --notes "$NOTE"
+    # 2️⃣ 下載 artifact
+    - name: Download Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: build-artifact
+
+    # 3️⃣ 發佈 Release
+    - name: Deploy to Staging
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        TAG="staging-$(date +'%Y%m%d-%H%M%S')"
+        NOTE="Automated staging release after successful tests"
+        gh release create "$TAG" build.zip --notes "$NOTE"
+
 
   deploy-production:
     needs: deploy-staging
